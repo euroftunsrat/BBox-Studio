@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BBox Studio - YOLO Annotation Workspace</title>
+    <link href="boobs.css" rel="stylesheet">
+    <script src="canvas.min.js"></script>
+    <script src="jszip.min.js"></script>
+    <script src="filesaver.min.js"></script>
+    <script src="boobs.js"></script>
+</head>
+
+<body>
+    <div class="container" id="container">
+        <div class="left">
+            <div class="app-header">
+                <h1>BBox Studio</h1>
+                <span class="badge-version">v1.1 - EURO FT-UNSRAT</span>
+            </div>
+
+            <form action="" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 12px;">
+
+                <!-- CARD 1: VIDEO TO FRAMES -->
+                <div class="card" id="videoConverterSection">
+                    <div class="card-title">1. Video Frame Extractor</div>
+                    <input type="file" id="videoFile" accept="video/mp4, video/avi, video/mkv" />
+                    <div class="row-flex">
+                        <div style="flex: 2;">
+                            <label for="videoProjectName">Project Name</label>
+                            <input type="text" id="videoProjectName" value="my_dataset" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label for="videoFps">FPS</label>
+                            <input type="number" id="videoFps" value="5" min="1" max="60" />
+                        </div>
+                    </div>
+                    <input type="button" id="convertVideoBtn" class="btn-primary" value="Extract Frames (.ZIP)" />
+                    <progress id="extractProgress" value="0" max="100" style="display: none;"></progress>
+                </div>
+
+                <!-- CARD 2: IMAGES WORKSPACE -->
+                <div class="card">
+                    <div class="row-between">
+                        <div class="card-title" style="margin:0;">2. Images Workspace</div>
+                        <input type="button" name="cropImages" id="cropImages" value="Crop & Save" style="padding: 3px 8px; font-size: 11px;" />
+                    </div>
+                    <input type="file" id="images" name="images[]" accept="image/jpeg, image/png" multiple />
+                    <input type="text" id="imageSearch" name="imageSearch" placeholder="Cari nama file gambar..." />
+                    <select name="imageList" id="imageList" size="6" multiple></select>
+                    <div id="imageInformation">No image loaded</div>
+                </div>
+
+                <!-- CARD 3: CLASSES MANAGER -->
+                <div class="card">
+                    <div class="card-title">3. Classes Manager</div>
+                    <input type="file" id="classes" name="classes" accept="text/plain" />
+
+                    <div id="directClassSection" class="row-flex">
+                        <input type="text" id="newClassNameInput" placeholder="Ketik kelas baru..." style="flex: 1;" />
+                        <button type="button" id="addClassBtn" class="btn-primary">+ Add</button>
+                    </div>
+
+                    <select name="classList" id="classList" size="5" multiple></select>
+                    <div id="bboxInformation">No BBox selected</div>
+                </div>
+
+                <!-- CARD 4: ANNOTATIONS & DATASET EXPORT -->
+                <div class="card" id="datasetSetupSection">
+                    <div class="card-title">4. Annotations & Dataset Split</div>
+
+                    <label for="bboxes">Import Existing Labels (.txt / .zip)</label>
+                    <div class="row-flex">
+                        <input type="file" id="bboxes" name="bboxes[]" accept="text/plain, application/zip" disabled multiple style="flex: 1;" />
+                        <input type="button" name="restoreBboxes" id="restoreBboxes" value="Restore" disabled />
+                    </div>
+
+                    <div class="split-row">
+                        <span>Train Split</span>
+                        <div class="split-controls">
+                            <button type="button" onclick="adjustPct('train', -10)">-</button>
+                            <span class="split-val"><span id="trainPctVal">70</span>%</span>
+                            <button type="button" onclick="adjustPct('train', 10)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="split-row">
+                        <span>Validation Split</span>
+                        <div class="split-controls">
+                            <button type="button" onclick="adjustPct('val', -10)">-</button>
+                            <span class="split-val"><span id="valPctVal">20</span>%</span>
+                            <button type="button" onclick="adjustPct('val', 10)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="split-row">
+                        <span>Test Split</span>
+                        <div class="split-controls">
+                            <button type="button" onclick="adjustPct('test', -10)">-</button>
+                            <span class="split-val"><span id="testPctVal">10</span>%</span>
+                            <button type="button" onclick="adjustPct('test', 10)">+</button>
+                        </div>
+                    </div>
+
+                    <div id="pctWarning" style="font-size: 11px; color: #f87171; display: none; font-weight: 600;">Total harus tepat 100%!</div>
+
+                    <input type="button" id="setUpDatasetBtn" class="btn-success" value="Set Up Dataset (ZIP + classes.txt)" />
+                    <input type="button" name="saveBboxes" id="saveBboxes" value="Export Raw YOLO Labels Only" />
+                </div>
+
+                <!-- CARD 5: LEGACY FORMATS (VOC / COCO) -->
+                <div class="card" id="voc">
+                    <div class="card-title">5. Other Formats (VOC / COCO)</div>
+                    <div class="row-flex">
+                        <input type="text" id="vocFolder" name="vocFolder" value="data" placeholder="VOC folder" style="flex: 1;" />
+                        <input type="button" name="saveVocBboxes" id="saveVocBboxes" value="VOC" />
+                        <input type="button" name="saveCocoBboxes" id="saveCocoBboxes" value="COCO" />
+                    </div>
+                </div>
+
+                <!-- SHORTCUTS GUIDE -->
+                <div class="card shortcuts-box" id="description">
+                    <div class="card-title">Shortcuts & Controls</div>
+                    <ul>
+                        <li><b>Scroll Wheel:</b> Zoom in / out</li>
+                        <li><b>Right Click + Drag:</b> Pan canvas</li>
+                        <li><b>Left / Right Arrow:</b> Prev / Next image</li>
+                        <li><b>Up / Down Arrow:</b> Prev / Next class</li>
+                        <li><b>Delete:</b> Hapus BBox terpilih</li>
+                    </ul>
+                </div>
+
+            </form>
+        </div>
+
+        <div class="right" id="right">
+            <canvas id="canvas"></canvas>
+            <canvas id="hiddenCanvas"></canvas>
+        </div>
+    </div>
+</body>
+
+</html>
