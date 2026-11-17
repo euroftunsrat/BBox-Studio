@@ -2,7 +2,13 @@
 
 ![Main Interface Preview](ui.png)
 
+## Credits & Acknowledgments
+* **Original Project (YBAT):** Created by [@draining-sun](https://github.com/draining-sun)[cite: 1].
+* **Fork & Reference Base:** Adapted from [@wodyjowski](https://github.com/wodyjowski)[cite: 2].
+* **Enhanced & Modified by:** Imanuel Stefanus Pesak [@NuelEuro](https://github.com/NuelEuro)[cite: 3].
+
 An interactive browser-based image annotation web application designed specifically to accelerate the workflow of creating and managing bounding box object detection datasets (YOLO, VOC, COCO).
+
 
 ## Key Features & Improvements
 This tool is an evolution and advanced improvement of **boobs master**, packed with modern productivity enhancements:
